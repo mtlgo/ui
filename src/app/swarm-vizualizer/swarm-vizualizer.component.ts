@@ -21,18 +21,17 @@ export class SwarmVizualizerComponent implements OnInit {
 
     tasks: Task[];
     nodes: Node[];
-    tasksCircles: any;
     rootWorkspace: any;
+    rootNode: any;
 
     constructor(private el: ElementRef) { }
 
     ngOnInit() {
         console.log('SwarmVizDirective:ngAfterViewInit');
         this.createWorkspace();
-        this.prepareData();
-        //this.createContainersCircles();
-        this.activateSimulation();
-        this.structureDataAndPack();
+        this.generateData();
+      // this.activateSimulation();
+       this.structureDataAndPack();
     }
 
     createWorkspace() {
@@ -45,7 +44,7 @@ export class SwarmVizualizerComponent implements OnInit {
 
     }
 
-    prepareData() {
+    generateData() {
 
         let nodeFactory = (index) => {
             let node = new Node();
@@ -69,36 +68,39 @@ export class SwarmVizualizerComponent implements OnInit {
             };
             return _.assign(task, data);
         };
+
+
         this.nodes = _.range(this.numberOfNodes).map((i) => { return nodeFactory(i); });
         this.tasks = _.range(this.numberOfTasks).map((i) => {
             let node = this.nodes[_.random(this.nodes.length - 1)];
             return taskFactory(i, node);
         });
+
     }
 
-    createContainersCircles() {
-        let color = d3.scaleOrdinal(d3.schemeCategory20);
-        this.tasksCircles = this.rootWorkspace.append('g')
-            .datum(this.tasks)
-            .selectAll('.circle')
-            .data(d => d)
-            .enter().append('circle')
-            .attr('r', (d) => d.stats.cpu)
-            .attr('fill', (d) => color(d.node.id))
-            .attr('stroke', 'black')
-            .attr('stroke-width', 1);
-    }
+    // createContainersCircles() {
+    //     let color = d3.scaleOrdinal(d3.schemeCategory20);
+    //     this.tasksCircles = this.rootWorkspace.append('g')
+    //         .datum(this.tasks)
+    //         .selectAll('.circle')
+    //         .data(d => d)
+    //         .enter().append('circle')
+    //         .attr('r', (d) => d.stats.cpu)
+    //         .attr('fill', (d) => color(d.node.id))
+    //         .attr('stroke', 'black')
+    //         .attr('stroke-width', 1);
+    // }
 
     activateSimulation() {
         console.log('SwarmVizDirective:doSimulation', this.tasks);
-        let simulation = d3.forceSimulation(this.tasks)
+        let simulation = d3.forceSimulation(this.rootNode)
             .velocityDecay(0.2)
             .force('x', d3.forceX().strength(.0005))
-            .force('y', d3.forceY().strength(.0005));
+            .force('y', d3.forceY().strength(.0005))
         //.force('cluster', this.clustering.bind(this))
-        //.force('collide', this.collide.bind(this))
+        .force('collide', this.collide.bind(this))
 
-        //.on('tick', this.ticked.bind(this));
+        .on('tick', this.ticked.bind(this));
     }
 
     structureDataAndPack() {
@@ -126,9 +128,22 @@ export class SwarmVizualizerComponent implements OnInit {
 
         let complex = structure(this.tasks);
         console.log('SwarmVizDirective:structureDataAndPack: complex', complex);
+        let nComplex = _.map(complex, (node) => {
+            console.log(node);
+            let tasksIndexedByServiceName= _.groupBy(node.children, 'service.name');
+            let nodeChildren = _.transform(tasksIndexedByServiceName, function(result, value, key) {
+               result.push({
+                        serviceName: key,
+                        children: value
+                    });
+            }, []);
+            node.children = nodeChildren;
+            return node;
+        });
+        console.log('newStructure', nComplex);
         let rootNodeData = {
             name: 'root',
-            children: complex
+            children: nComplex
         };
         let root = d3.hierarchy(rootNodeData)
             .sum((t: any) => { return t.stats ? t.stats.cpu : 1337; });
@@ -137,27 +152,24 @@ export class SwarmVizualizerComponent implements OnInit {
             .padding(5);
         pack(root);
         console.log('SwarmVizDirective:structureDataAndPack: root', root);
-        let node = this.rootWorkspace
+
+        this.rootNode = this.rootWorkspace
             .selectAll('g')
             .data(root.descendants())
                 .enter().append('g')
-                .attr('transform', function (d) { console.log('d', d); return 'translate(' + d.x + ',' + d.y + ')'; });
-        console.log('SwarmVizDirective:structureDataAndPack', node);
-        node.append('circle')
+                .attr('transform', function (d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+        console.log('SwarmVizDirective:structureDataAndPack', this.rootNode);
+        this.rootNode.append('circle')
             .attr('id', function (d) { return d.data.name; })
             .attr('r', function (d) { return d.r; })
             .style('fill', function (d) { return color(d.depth); });
-        node.append('title')
+        this.rootNode.append('title')
             .text(function(d) { return d.data.name; });
 
     }
 
-    packing(alpha) {
-
-    }
-
     ticked() {
-        this.tasksCircles
+        this.rootNode
             .attr('cx', (d) => d.x)
             .attr('cy', (d) => d.y);
     }
