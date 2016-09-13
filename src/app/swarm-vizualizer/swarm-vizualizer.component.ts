@@ -9,8 +9,8 @@ import { Task, Node , Service} from './models';
     styleUrls: ['./swarm-vizualizer.component.css']
 })
 export class SwarmVizualizerComponent implements OnInit {
-    width: number = 960;
-    height: number = 500;
+    width: number = 1000;
+    height: number = 1000;
     padding: number = 1.5; // separation between same-color nodes
     clusterPadding: number = 6; // separation between different-color nodes
     maxRadius: number = 450;
@@ -30,15 +30,15 @@ export class SwarmVizualizerComponent implements OnInit {
         console.log('SwarmVizDirective:ngAfterViewInit');
         this.createWorkspace();
         this.generateData();
-      // this.activateSimulation();
-       this.structureDataAndPack();
+        this.structureDataAndPack();
     }
 
     createWorkspace() {
+
         this.rootWorkspace = d3.select(this.el.nativeElement)
             .append('svg')
-            .attr('width', this.width)
-            .attr('height', this.height);
+                .attr('viewBox', `0 0 ${this.width} ${this.height}`)
+                .attr('preserveAspectRatio', 'xMinYMin meet');
         console.log('SwarmVizDirective:createWorkspace', this.rootWorkspace);
 
     }
@@ -77,18 +77,6 @@ export class SwarmVizualizerComponent implements OnInit {
 
     }
 
-    // createContainersCircles() {
-    //     let color = d3.scaleOrdinal(d3.schemeCategory20);
-    //     this.tasksCircles = this.rootWorkspace.append('g')
-    //         .datum(this.tasks)
-    //         .selectAll('.circle')
-    //         .data(d => d)
-    //         .enter().append('circle')
-    //         .attr('r', (d) => d.stats.cpu)
-    //         .attr('fill', (d) => color(d.node.id))
-    //         .attr('stroke', 'black')
-    //         .attr('stroke-width', 1);
-    // }
 
     activateSimulation() {
         // console.log('SwarmVizDirective:doSimulation', this.tasks);
@@ -105,8 +93,8 @@ export class SwarmVizualizerComponent implements OnInit {
             .force('collide', d3.forceCollide( function(d: any){return d.r + 8; }).iterations(16) )
             .force('charge', d3.forceManyBody())
             .force('center', d3.forceCenter(this.width / 2, this.height / 2))
-            .force('y', d3.forceY(0))
-            .force('x', d3.forceX(0));
+            .force('y', d3.forceY(0.05))
+            .force('x', d3.forceX(0.05));
 
             //  let ticked = function() {
             //     node
@@ -156,25 +144,27 @@ export class SwarmVizualizerComponent implements OnInit {
             return node;
         });
         console.log('newStructure', nComplex);
-        // let rootNodeData = {
-        //     name: 'root',
-        //     children: nComplex
-        // };
-        // let root = d3.hierarchy(rootNodeData)
-        //     .sum((t: any) => { return t.stats ? t.stats.cpu : 1337; });
+
         let pack = d3.pack()
-            .size([this.width / 2, this.height / 2])
+            .size([250, 250])
             .padding(5);
-        _.each(nComplex, (node) => {
+        let shadowWorkspace = this.rootWorkspace
+                                    .append('g');
+        _.each(nComplex, (node, i) => {
             console.log('node', node);
             let root = d3.hierarchy(node)
                 .sum((o: any) => { return o instanceof Task ?  o.stats.cpu : o.children.length; });
             pack(root);
             console.log('SwarmVizDirective:structureDataAndPack: root', root);
+            
+            let width = d3.scaleLinear()
+                            .domain([0, nComplex.length - 1])
+                            .range([0, 500]);
+                            console.log(i, width(i));
+        let nodeGroup = shadowWorkspace.append('g')
+                                    .attr('transform', (d) => { return 'translate(' + width(i) + ',' + 0    + ')'; })
+                                    .attr('class', node.hostName);
 
-        let nodeGroup = this.rootWorkspace
-                                .append('g')
-                                .attr('class', node.hostName);
             let circles = nodeGroup.selectAll('g')
                                 .data(root.descendants())
                                     .enter().append('g')
@@ -187,88 +177,7 @@ export class SwarmVizualizerComponent implements OnInit {
             .attr('r', function (d) { return d.r; })
             .style('fill', function (d) { return color(d.depth); });
         circles.append('title')
-            .text(function(d) { return `${d.data.name}`; });
-
-
-         let simulation = d3.forceSimulation()
-            .force('collide', d3.forceCollide( (d: any) =>{console.log('d', d); return d.r + 8; }).iterations(16) )
-            .force('charge', d3.forceManyBody())
-            .force('center', d3.forceCenter(this.width / 2, this.height / 2))
-            .force('y', d3.forceY(0))
-            .force('x', d3.forceX(0));
-
-             let ticked = () => {
-                circles
-                    .attr('cx', function(d) { return d.x; })
-                    .attr('cy', function(d) { return d.y; });
-             };
-
-             simulation
-                .nodes(circles)
-                .on('tick', ticked);
-        });
-
-
-
-
-
-    }
-
-    ticked() {
-        this.rootNode
-            .attr('cx', (d) => d.x)
-            .attr('cy', (d) => d.y);
-    }
-    // These are implementations of the custom forces.
-    clustering(alpha) {
-        this.tasks.forEach((d: any) => {
-            let node = _.find<any>(this.nodes, d.id);
-            if (node.id === d.id) return;
-            let x = d.x - node.x,
-                y = d.y - node.y,
-                l = Math.sqrt(x * x + y * y),
-                r = d.r + node.r;
-            if (l !== r) {
-                l = (l - r) / l * alpha;
-                d.x -= x *= l;
-                d.y -= y *= l;
-                node.x += x;
-                node.y += y;
-            }
+            .text(function(d) { return `${d.data.name}-${d.data.stats ? d.data.stats.cpu :d.data.name}`; });
         });
     }
-
-    collide(alpha) {
-        let tasks = this.tasks;
-        let quadtree = d3.quadtree<Task>()
-            .x((d) => d[0])
-            .y((d) => d[1])
-            .addAll(tasks);
-
-        this.tasks.forEach((d: any) => {
-            let r = d.r + this.maxRadius + Math.max(this.padding, this.clusterPadding),
-                nx1 = d.x - r,
-                nx2 = d.x + r,
-                ny1 = d.y - r,
-                ny2 = d.y + r;
-            quadtree.visit((quad: any, x1, y1, x2, y2) => {
-
-                if (quad.data && (quad.data !== d)) {
-                    let x = d.x - quad.data.x,
-                        y = d.y - quad.data.y,
-                        l = Math.sqrt(x * x + y * y),
-                        r = d.r + quad.data.r + (d.cluster === quad.data.cluster ? this.padding : this.clusterPadding);
-                    if (l < r) {
-                        l = (l - r) / l * alpha;
-                        d.x -= x *= l;
-                        d.y -= y *= l;
-                        quad.data.x += x;
-                        quad.data.y += y;
-                    }
-                }
-                return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
-            });
-        });
-    }
-
 }
