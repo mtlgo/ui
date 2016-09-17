@@ -4,10 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 
 import { AppComponent } from './app.component';
+import { DOCKER_UI_DIRECTIVES } from './shared';
+import { SwarmVizDirective } from './shared/directives/swarm-viz.directive';
+import { SwarmVizualizerComponent } from './swarm-vizualizer/swarm-vizualizer.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    SwarmVizDirective,
+    SwarmVizualizerComponent
   ],
   imports: [
     BrowserModule,

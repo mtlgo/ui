@@ -1,31 +1,35 @@
-# DockerUi
+# Docker UI
 
-This project was generated with [angular-cli](https://github.com/angular/angular-cli) version 1.0.0-beta.11-webpack.8.
+## Note
 
-## Development server
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+This project is built upon the **Angular-cli** for Angular 2. You can browse [the repository for further information about the CLI](https://github.com/angular/angular-cli). For the nitty-gritty details of the Angular-cli Webpack configuration, you can have a look on [this file](https://github.com/angular/angular-cli/blob/master/addon/ng2/models/webpack-build-common.ts).
 
-## Code scaffolding
+### Compilation and Build stack
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive/pipe/service/class`.
+- [x] [Webpack 2](https://webpack.github.io/docs/roadmap.html#2)
+- [x] [Typescript 2](https://blogs.msdn.microsoft.com/typescript/2016/07/11/announcing-typescript-2-0-beta/)
 
-## Build
+## Prerequisites
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `-prod` flag for a production build.
+It's not mandatory, but you can install the angular-cli for convenience.
+```bash
+npm install -g angular-cli@webpack
+```
 
-## Running unit tests
+## Installation
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+```bash
+npm install
+```
 
-## Running end-to-end tests
+## Run
+Run a Webpack dev server 
+```bash
+npm start
+```
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/). 
-Before running the tests make sure you are serving the app via `ng serve`.
-
-## Deploying to Github Pages
-
-Run `ng github-pages:deploy` to deploy to Github Pages.
-
-## Further help
-
-To get more help on the `angular-cli` use `ng --help` or go check out the [Angular-CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+## Build Only
+Build a development release
+```bash
+npm run build
+```
