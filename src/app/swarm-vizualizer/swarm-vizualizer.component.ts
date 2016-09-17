@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewEncapsulation } from '@angular/core';
 import * as d3 from '../shared/lib/custom-bundled-d3';
 import * as _ from 'lodash';
 import { Task, Node , Service} from './models';
@@ -6,7 +6,8 @@ import { Task, Node , Service} from './models';
 @Component({
     selector: 'app-swarm-vizualizer',
     templateUrl: './swarm-vizualizer.component.html',
-    styleUrls: ['./swarm-vizualizer.component.css']
+    styleUrls: ['./swarm-vizualizer.component.scss'],
+    encapsulation : ViewEncapsulation.None
 })
 export class SwarmVizualizerComponent implements OnInit {
     width: number = 1000;
@@ -28,7 +29,7 @@ export class SwarmVizualizerComponent implements OnInit {
 
     ngOnInit() {
         console.log('SwarmVizDirective:ngAfterViewInit');
-        this.createWorkspace();
+      //  this.createWorkspace();
         this.generateData();
         this.structureDataAndPack();
     }
@@ -146,38 +147,54 @@ export class SwarmVizualizerComponent implements OnInit {
         console.log('newStructure', nComplex);
 
         let pack = d3.pack()
-            .size([250, 250])
+            .size([700, 700])
             .padding(5);
-        let shadowWorkspace = this.rootWorkspace
-                                    .append('g');
+        // let shadowWorkspace = this.rootWorkspace
+        //                             .append('g');
         _.each(nComplex, (node, i) => {
             console.log('node', node);
             let root = d3.hierarchy(node)
                 .sum((o: any) => { return o instanceof Task ?  o.stats.cpu : o.children.length; });
             pack(root);
             console.log('SwarmVizDirective:structureDataAndPack: root', root);
-            
+
             let width = d3.scaleLinear()
                             .domain([0, nComplex.length - 1])
                             .range([0, 500]);
                             console.log(i, width(i));
-        let nodeGroup = shadowWorkspace.append('g')
-                                    .attr('transform', (d) => { return 'translate(' + width(i) + ',' + 0    + ')'; })
-                                    .attr('class', node.hostName);
+
+
+            let workspace = d3.select(this.el.nativeElement).select('div.complete-dashboard')
+                                    .append('div')
+                                        .attr('class', 'node-container')
+                                    .append('svg')
+                                        .attr('viewBox', `0 0 ${this.width} ${this.height}`)
+                                        .attr('preserveAspectRatio', 'xMinYMin meet');
+            let nodeGroup = workspace.append('g')
+                                        .attr('transform', (d) => { return 'translate(' + 0+ ',' + 0 + ')'; })
+                                        .attr('class', node.hostName);
 
             let circles = nodeGroup.selectAll('g')
-                                .data(root.descendants())
+                                .data<any>(root.descendants())
                                     .enter().append('g')
-                                    .attr('transform', function (d) { return 'translate(' + d.x + ',' + d.y + ')'; });
+                                    .attr('transform',  (d) => { return 'translate(' + d.x + ',' + d.y + ')'; });
+            let ticked = function() {
 
+             };
+            
+            d3.forceSimulation([nodeGroup,circles])
+                .force('center',d3.forceCenter(500,500))
+                 .on('tick', ticked);
+            console.log('SwarmVizDirective:structureDataAndPack', circles);
+            circles.append('circle')
+                .attr('id', function (d) { return d.data.name; })
+                .attr('r', function (d) { return d.r; })
+                .style('fill', function (d) { return color(d.depth); });
+            circles.append('title')
+                .text(function(d) { return `${d.data.name}-${d.data.stats ? d.data.stats.cpu :d.data.name}`; });
 
-        console.log('SwarmVizDirective:structureDataAndPack', circles);
-        circles.append('circle')
-            .attr('id', function (d) { return d.data.name; })
-            .attr('r', function (d) { return d.r; })
-            .style('fill', function (d) { return color(d.depth); });
-        circles.append('title')
-            .text(function(d) { return `${d.data.name}-${d.data.stats ? d.data.stats.cpu :d.data.name}`; });
+           
         });
+
     }
 }
