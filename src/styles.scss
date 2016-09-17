@@ -1,1 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
+
+$blue: #72d0eb;
+$pink:#AD1457 ;
+
+$danger: $pink;
+
+@import "../node_modules/bulma/bulma"

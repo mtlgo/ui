@@ -6,8 +6,7 @@ import { Task, Node , Service} from './models';
 @Component({
     selector: 'app-swarm-vizualizer',
     templateUrl: './swarm-vizualizer.component.html',
-    styleUrls: ['./swarm-vizualizer.component.scss'],
-    encapsulation : ViewEncapsulation.None
+    styleUrls: ['./swarm-vizualizer.component.scss']
 })
 export class SwarmVizualizerComponent implements OnInit {
     width: number = 1000;
@@ -164,14 +163,16 @@ export class SwarmVizualizerComponent implements OnInit {
                             console.log(i, width(i));
 
 
-            let workspace = d3.select(this.el.nativeElement).select('div.complete-dashboard')
+            let workspace = d3.select(this.el.nativeElement).select('.tile.is-ancestor>.tile')
                                     .append('div')
-                                        .attr('class', 'node-container')
+                                        .attr('class', 'node-container tile')
                                     .append('svg')
                                         .attr('viewBox', `0 0 ${this.width} ${this.height}`)
+                                        .style('width', '100%')
+                                        .style('height', '100%')
                                         .attr('preserveAspectRatio', 'xMinYMin meet');
             let nodeGroup = workspace.append('g')
-                                        .attr('transform', (d) => { return 'translate(' + 0+ ',' + 0 + ')'; })
+                                        .attr('transform', (d) => { return 'translate(' + 0 + ',' + 0 + ')'; })
                                         .attr('class', node.hostName);
 
             let circles = nodeGroup.selectAll('g')
@@ -181,9 +182,9 @@ export class SwarmVizualizerComponent implements OnInit {
             let ticked = function() {
 
              };
-            
-            d3.forceSimulation([nodeGroup,circles])
-                .force('center',d3.forceCenter(500,500))
+
+            d3.forceSimulation([nodeGroup, circles])
+                .force('center', d3.forceCenter(500, 500))
                  .on('tick', ticked);
             console.log('SwarmVizDirective:structureDataAndPack', circles);
             circles.append('circle')
@@ -193,7 +194,7 @@ export class SwarmVizualizerComponent implements OnInit {
             circles.append('title')
                 .text(function(d) { return `${d.data.name}-${d.data.stats ? d.data.stats.cpu :d.data.name}`; });
 
-           
+
         });
 
     }
