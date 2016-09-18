@@ -1,5 +1,15 @@
-<div class="tile is-ancestor">
-    <div class="tile is-12">
+<div class="columns">
+    <div class="column is-three-quarters">
+        <div class="tile is-ancestor">
+            <div class="tile is-12">
 
+            </div>
+        </div>
     </div>
+    <div>
+        <ul>
+            <li *ngFor="let service of services"> <span [style.background]="colorizeService({name:service})" class="service is-info tag is-large">{{service}}</span></li>
+        </ul>
+    </div>
+
 </div>

@@ -1,4 +1,5 @@
 import { Component, OnInit, ElementRef, ViewEncapsulation } from '@angular/core';
+const textures = require('textures');
 import * as d3 from '../shared/lib/custom-bundled-d3';
 import * as _ from 'lodash';
 import { Task, Node , Service} from './models';
@@ -21,12 +22,13 @@ export class SwarmVizualizerComponent implements OnInit {
 
     tasks: Task[];
     nodes: Node[];
+    services: Array<string> = ['nginx', 'redis', 'node', 'alpine'];
     rootWorkspace: any;
     rootNode: any;
 
     // Colors for hosts ([0] for managers and [1] for nodes)
     nodesColors: Array<string> = ['#1DE9B6', '#00E5FF'];
-    taskColor: string = '#D500F9';
+    taskColor: string = '#FFF';
 
     constructor(private el: ElementRef) { }
 
@@ -48,7 +50,6 @@ export class SwarmVizualizerComponent implements OnInit {
         };
         let taskFactory = (index, node: Node) => {
             let task = new Task();
-            let _services: Array<string> = ['nginx', 'redis', 'node', 'alpine'];
             let data = {
                 id: index,
                 name: `task-${index}`,
@@ -56,7 +57,7 @@ export class SwarmVizualizerComponent implements OnInit {
                 stats: {
                     cpu: Math.random() * 100
                 },
-                service: _.assign(new Service(), { name: _services[index % _services.length]})
+                service: _.assign(new Service(), { name: this.services[index % this.services.length]})
             };
             return _.assign(task, data);
         };
@@ -81,7 +82,7 @@ export class SwarmVizualizerComponent implements OnInit {
                 if (existingNode) {
                     existingNode.children.push(task);
                 } else {
-                    hierarchy.push(_.assign(task.node,{children:[task]}) );
+                    hierarchy.push(_.assign(task.node, {children: [task]}) );
                 }
                 return hierarchy;
             }, []);
@@ -94,8 +95,8 @@ export class SwarmVizualizerComponent implements OnInit {
 
         let nComplex = _.map(complex, (node) => {
             let tasksIndexedByServiceName = _.groupBy(node.children, 'service.name');
-            let nodeChildren = _.transform(tasksIndexedByServiceName, function(result, value:any, key) {
-               result.push(_.assign(value[0].service,{children:value}));
+            let nodeChildren = _.transform(tasksIndexedByServiceName, function(result, value: any, key) {
+               result.push(_.assign(value[0].service, {children: value}));
             }, []);
             node.children = nodeChildren;
             return node;
@@ -116,11 +117,11 @@ export class SwarmVizualizerComponent implements OnInit {
                                     .append('div')
                                         .attr('class', 'node-container tile is-child');
                             nodeTile.append('h2')
-                                        .attr('class','has-text-centered')
+                                        .attr('class', 'title is-2 has-text-centered')
                                         .text(node.hostName);
-                                    
 
-                      let nodePlaceHolder= nodeTile.append('svg')
+
+                      let nodePlaceHolder = nodeTile.append('svg')
                                         .attr('viewBox', `0 0 ${this.width} ${this.height}`)
                                         .style('width', '100%')
                                         .style('height', '100%')
@@ -142,27 +143,37 @@ export class SwarmVizualizerComponent implements OnInit {
                 .attr('r', function (d) { return d.r; });
 
         // Style containers
+        let texturize= (svg) => {
+           let t = textures.lines()
+                        .stroke(this.taskColor)
+                        .thicker();
+            svg.call(t);
+            return t.url();
+        }
             circles
                 .filter((d) => {return d.depth === 2; })
-                    .style('fill', d => this.taskColor)
+                    .style('fill', d => texturize(nodePlaceHolder))
                     .append('title')
                     .text(function(d) { return `${d.data.name}- cpu: ${Math.floor(d.data.stats.cpu)}%`; });
 
 
         // Style services packs
+            //  let colorizeService = (service) => {
+            //         return d3.scaleOrdinal(d3.schemeCategory20).domain(this.services)(service.name);
+            // };
             circles
                 .filter((d) => {return d.depth === 1; })
-                    .style('fill', d => { return d3.scaleOrdinal(d3.schemeCategory20b)('1'); })
+                    .style('fill', d => { return this.colorizeService(d.data); })
                     .append('title')
-                    .text(function(d) { return `${d.data.serviceName}`; });
-        
+                    .text(function(d) { return `${d.data.name}`; });
+
         // Style Host nodes
             let colorizeNode = (host) => {
-                return d3.scaleOrdinal(this.nodesColors).domain(['manager','node'])( host.isManager ? 'manager' : 'node' );
+                return d3.scaleOrdinal(this.nodesColors).domain(['manager', 'node'])( host.isManager ? 'manager' : 'node' );
             };
             circles
                 .filter((d) => {return d.depth === 0; })
-                    .style('fill', d => { console.log('host',d); return colorizeNode(d.data); })
+                    .style('fill', d => { return colorizeNode(d.data); })
                     .append('title')
                     .text(function(d: any) { return `${d.data.hostName}`; });
 
@@ -170,5 +181,9 @@ export class SwarmVizualizerComponent implements OnInit {
 
         });
 
+    }
+
+    colorizeService(service: Service) {
+        return d3.scaleOrdinal(d3.schemeCategory20).domain(this.services)(service.name);
     }
 }
