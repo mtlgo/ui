@@ -104,7 +104,7 @@ export class SwarmVizualizerComponent implements OnInit {
 
         let pack = d3.pack()
             .size([900, 900])
-            .padding(30);
+            .padding(10);
 
         _.each(nComplex, (node, i) => {
             let root = d3.hierarchy(node)
@@ -129,18 +129,18 @@ export class SwarmVizualizerComponent implements OnInit {
                                         .attr('transform', (d) => { return 'translate(50,50)'; })
                                         .attr('class', node.hostName);
 
-            let circles = nodeGroup.selectAll('g')
+            let gCircles = nodeGroup.selectAll('g')
                                 .data<any>(root.descendants())
                                     .enter().append('g')
                                     .attr('transform',  (d) => { return 'translate(' + d.x + ',' + d.y + ')'; });
 
 
 
-            console.log('SwarmVizDirective:structureDataAndPack', circles);
-            circles.append('circle')
+            console.log('SwarmVizDirective:Group Circles', gCircles);
+            let circles = gCircles.append('circle')
                 .attr('id', function (d) { return d.data.name; })
                 .attr('r', function (d) { return d.r; });
-
+                console.log('alt', circles);
         // Style containers
         let texturize = (svg) => {
            let t = textures.lines()
@@ -149,26 +149,24 @@ export class SwarmVizualizerComponent implements OnInit {
             svg.call(t);
             return t.url();
         };
+        // Containers
             circles
                 .filter((d) => {return d.depth === 2; })
                     //.style('fill', d => texturize(nodePlaceHolder))
-                    .style('fill', (d) => { console.log(d); return this.colorizeContainer(d.data.service);})
+                    .style('fill', (d) => { return this.colorizeContainer(d.data.service);})
                     .append('title')
                     .text(function(d) { return `${d.data.name}- cpu: ${Math.floor(d.data.stats.cpu)}%`; });
 
 
-        // Style services packs
-            //  let colorizeService = (service) => {
-            //         return d3.scaleOrdinal(d3.schemeCategory20).domain(this.services)(service.name);
-            // };
+        // Services
             circles
                 .filter((d) => {return d.depth === 1; })
                     .style('fill', d => { return this.getServicePackColor(d.data); })
-                    .style('opacity', 0.5)
+                    .style('opacity', 0.8)
                     .append('title')
                     .text(function(d) { return `${d.data.name}`; });
 
-        // Style Host nodes
+        // Hosts
             let colorizeNode = (host) => {
                 return d3.scaleOrdinal(this.nodesColors).domain(['manager', 'node'])( host.isManager ? 'manager' : 'node' );
             };
@@ -199,6 +197,6 @@ export class SwarmVizualizerComponent implements OnInit {
     }
 
     getServicePackColor(service: Service){
-         return '#BDBDBD';
+         return '#F5F5F5';
     }
 }
