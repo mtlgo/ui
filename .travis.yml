@@ -5,7 +5,8 @@ services:
 
 language: node_js
 
-install: true
+install: 
+    - true
 
 env:
   global:
