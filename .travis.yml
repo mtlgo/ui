@@ -1,0 +1,24 @@
+sudo: required
+
+services:
+  - docker
+
+language: node_js
+node_js:
+  - "6.1"
+
+install: true
+script: true
+
+env:
+  global:
+     - COMMIT=${TRAVIS_COMMIT::8}
+
+after_success:
+  - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+  - export REPO=mtlgo/docker-ui
+  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
+  - docker build -f Dockerfile -t $REPO:$COMMIT .
+  - docker tag $REPO:$COMMIT $REPO:$TAG
+  - docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
+  - docker push $REPO

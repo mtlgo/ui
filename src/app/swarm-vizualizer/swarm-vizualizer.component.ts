@@ -27,7 +27,7 @@ export class SwarmVizualizerComponent implements OnInit {
     rootNode: any;
 
     // Colors for hosts ([0] for managers and [1] for nodes)
-    nodesColors: Array<string> = ['#1DE9B6', '#00E5FF'];
+    nodesColors: Array<string> = ['#38AFB2', '#658AAB'];
     taskColor: string = '#FFF';
 
     constructor(private el: ElementRef) { }
@@ -38,7 +38,7 @@ export class SwarmVizualizerComponent implements OnInit {
     }
 
     generateData() {
-        
+
         let nodeFactory = (index) => {
             let node = new Node();
             let data = {
@@ -104,7 +104,7 @@ export class SwarmVizualizerComponent implements OnInit {
 
         let pack = d3.pack()
             .size([900, 900])
-            .padding(5);
+            .padding(30);
 
         _.each(nComplex, (node, i) => {
             let root = d3.hierarchy(node)
@@ -142,16 +142,17 @@ export class SwarmVizualizerComponent implements OnInit {
                 .attr('r', function (d) { return d.r; });
 
         // Style containers
-        let texturize= (svg) => {
+        let texturize = (svg) => {
            let t = textures.lines()
                         .stroke(this.taskColor)
                         .thicker();
             svg.call(t);
             return t.url();
-        }
+        };
             circles
                 .filter((d) => {return d.depth === 2; })
-                    .style('fill', d => texturize(nodePlaceHolder))
+                    //.style('fill', d => texturize(nodePlaceHolder))
+                    .style('fill', (d) => { console.log(d); return this.colorizeContainer(d.data.service);})
                     .append('title')
                     .text(function(d) { return `${d.data.name}- cpu: ${Math.floor(d.data.stats.cpu)}%`; });
 
@@ -162,7 +163,8 @@ export class SwarmVizualizerComponent implements OnInit {
             // };
             circles
                 .filter((d) => {return d.depth === 1; })
-                    .style('fill', d => { return this.colorizeService(d.data); })
+                    .style('fill', d => { return this.getServicePackColor(d.data); })
+                    .style('opacity', 0.5)
                     .append('title')
                     .text(function(d) { return `${d.data.name}`; });
 
@@ -172,9 +174,12 @@ export class SwarmVizualizerComponent implements OnInit {
             };
             circles
                 .filter((d) => {return d.depth === 0; })
-                    .style('fill', d => { return colorizeNode(d.data); })
-                    .append('title')
-                    .text(function(d: any) { return `${d.data.hostName}`; });
+                    .style('fill', d => {  return colorizeNode(d.data); })
+                    .style('opacity', 0.8)
+                    .attr('stroke-width', 20)
+                    .attr('stroke', d => { return colorizeNode(d.data); })
+                        .append('title')
+                        .text(function(d: any) { return `${d.data.hostName}`; });
 
 
 
@@ -182,7 +187,18 @@ export class SwarmVizualizerComponent implements OnInit {
 
     }
 
-    colorizeService(service: Service) {
-        return d3.scaleOrdinal(d3.schemeCategory20).domain(this.services)(service.name);
+    colorizeContainer(service) {
+        let colors = ['#BA40BB', '#03D7BF', '#6946D5', '#FFAB00'];
+        return d3.scaleOrdinal(colors).domain(this.services)(service.name);
+    }
+
+
+    getServiceColor(service: Service){
+        let colors = ['#BA40BB', '#03D7BF', '#6946D5', '#FFAB00'];
+        return d3.scaleOrdinal(colors).domain(this.services)(service.name);
+    }
+
+    getServicePackColor(service: Service){
+         return '#BDBDBD';
     }
 }
