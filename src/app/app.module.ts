@@ -7,6 +7,7 @@ import { AppComponent } from './app.component';
 import { DOCKER_UI_DIRECTIVES } from './shared';
 import { SwarmVizDirective } from './shared/directives/swarm-viz.directive';
 import { SwarmVizualizerComponent } from './swarm-vizualizer/swarm-vizualizer.component';
+import { SwarmService } from './swarm/swarm.service';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,7 @@ import { SwarmVizualizerComponent } from './swarm-vizualizer/swarm-vizualizer.co
     FormsModule,
     HttpModule
   ],
-  providers: [],
+  providers: [SwarmService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

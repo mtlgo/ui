@@ -38,7 +38,7 @@ export class SwarmVizualizerComponent implements OnInit {
     }
 
     generateData() {
-
+        
         let nodeFactory = (index) => {
             let node = new Node();
             let data = {
@@ -75,7 +75,6 @@ export class SwarmVizualizerComponent implements OnInit {
         return d3.scaleOrdinal(this.nodesColors);
     }
     structureDataAndPack() {
-        let color = d3.scaleOrdinal(this.nodesColors);
         let structure = (t: Task[]) => {
             return _.reduce(t, (hierarchy, task, key) => {
                 let existingNode = _.find(hierarchy, ['id', task.node.id]);
