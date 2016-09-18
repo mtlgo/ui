@@ -7,8 +7,7 @@ language: node_js
 
 install: 
     - true
-script:
-    - true
+script: true
 
 env:
   global:
