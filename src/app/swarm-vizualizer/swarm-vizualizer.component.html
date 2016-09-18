@@ -9,7 +9,7 @@
     <div>
         <h2> Services</h2>
         <ul>
-            <li *ngFor="let service of services"> <span [style.background]="colorizeService({name:service})" class="service is-info tag is-large">{{service}}</span></li>
+            <li *ngFor="let service of services"> <span [style.background]="getServiceColor({name:service})" class="service is-info tag is-large">{{service}}</span></li>
         </ul>
     </div>
 

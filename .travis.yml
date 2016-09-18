@@ -4,9 +4,10 @@ services:
   - docker
 
 language: node_js
+node_js:
+  - "6.1"
 
-install: 
-    - true
+install: true
 script: true
 
 env:

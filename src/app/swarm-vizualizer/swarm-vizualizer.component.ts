@@ -163,7 +163,7 @@ export class SwarmVizualizerComponent implements OnInit {
             // };
             circles
                 .filter((d) => {return d.depth === 1; })
-                    .style('fill', d => { return this.colorizeService(d.data); })
+                    .style('fill', d => { return this.getServicePackColor(d.data); })
                     .style('opacity', 0.5)
                     .append('title')
                     .text(function(d) { return `${d.data.name}`; });
@@ -192,8 +192,13 @@ export class SwarmVizualizerComponent implements OnInit {
         return d3.scaleOrdinal(colors).domain(this.services)(service.name);
     }
 
-    colorizeService(service: Service) {
-        return '#BDBDBD';
-        //return d3.scaleOrdinal(d3.schemeCategory20).domain(this.services)(service.name);
+
+    getServiceColor(service: Service){
+        let colors = ['#BA40BB', '#03D7BF', '#6946D5', '#FFAB00'];
+        return d3.scaleOrdinal(colors).domain(this.services)(service.name);
+    }
+
+    getServicePackColor(service: Service){
+         return '#BDBDBD';
     }
 }
