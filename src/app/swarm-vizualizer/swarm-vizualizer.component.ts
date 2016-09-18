@@ -162,7 +162,7 @@ export class SwarmVizualizerComponent implements OnInit {
             circles
                 .filter((d) => {return d.depth === 1; })
                     .style('fill', d => { return this.getServicePackColor(d.data); })
-                    .style('opacity', 0.8)
+                    .style('opacity', 0.9)
                     .append('title')
                     .text(function(d) { return `${d.data.name}`; });
 
