@@ -112,10 +112,15 @@ export class SwarmVizualizerComponent implements OnInit {
             pack(root);
             console.log('SwarmVizDirective:structureDataAndPack: root', root);
 
-            let nodePlaceHolder = d3.select(this.el.nativeElement).select('.tile.is-ancestor>.tile')
+            let nodeTile = d3.select(this.el.nativeElement).select('.tile.is-ancestor>.tile')
                                     .append('div')
-                                        .attr('class', 'node-container tile')
-                                    .append('svg')
+                                        .attr('class', 'node-container tile is-child');
+                            nodeTile.append('h2')
+                                        .attr('class','has-text-centered')
+                                        .text(node.hostName);
+                                    
+
+                      let nodePlaceHolder= nodeTile.append('svg')
                                         .attr('viewBox', `0 0 ${this.width} ${this.height}`)
                                         .style('width', '100%')
                                         .style('height', '100%')
