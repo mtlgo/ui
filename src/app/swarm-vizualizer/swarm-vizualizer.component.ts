@@ -24,23 +24,15 @@ export class SwarmVizualizerComponent implements OnInit {
     rootWorkspace: any;
     rootNode: any;
 
+    // Colors for hosts ([0] for managers and [1] for nodes)
+    nodesColors: Array<string> = ['#1DE9B6', '#00E5FF'];
+    taskColor: string = '#D500F9';
+
     constructor(private el: ElementRef) { }
 
     ngOnInit() {
-        console.log('SwarmVizDirective:ngAfterViewInit');
-      //  this.createWorkspace();
         this.generateData();
         this.structureDataAndPack();
-    }
-
-    createWorkspace() {
-
-        this.rootWorkspace = d3.select(this.el.nativeElement)
-            .append('svg')
-                .attr('viewBox', `0 0 ${this.width} ${this.height}`)
-                .attr('preserveAspectRatio', 'xMinYMin meet');
-        console.log('SwarmVizDirective:createWorkspace', this.rootWorkspace);
-
     }
 
     generateData() {
@@ -49,7 +41,8 @@ export class SwarmVizualizerComponent implements OnInit {
             let node = new Node();
             let data = {
                 id: index,
-                hostName: `host-${index}`
+                hostName: `host-${index}`,
+                isManager: index === 0
             };
             return _.assign(node, data);
         };
@@ -77,53 +70,19 @@ export class SwarmVizualizerComponent implements OnInit {
 
     }
 
-
-    activateSimulation() {
-        // console.log('SwarmVizDirective:doSimulation', this.tasks);
-        // let simulation = d3.forceSimulation(this.rootNode)
-        //     .velocityDecay(0.2)
-        //     .force('x', d3.forceX().strength(.0005))
-        //     .force('y', d3.forceY().strength(.0005))
-        // //.force('cluster', this.clustering.bind(this))
-        // .force('collide', this.collide.bind(this))
-
-        // .on('tick', this.ticked.bind(this));
-
-         let simulation = d3.forceSimulation<Task>()
-            .force('collide', d3.forceCollide( function(d: any){return d.r + 8; }).iterations(16) )
-            .force('charge', d3.forceManyBody())
-            .force('center', d3.forceCenter(this.width / 2, this.height / 2))
-            .force('y', d3.forceY(0.05))
-            .force('x', d3.forceX(0.05));
-
-            //  let ticked = function() {
-            //     node
-            //         .attr('cx', function(d) { return d.x; })
-            //         .attr('cy', function(d) { return d.y; });
-            //  };
-
-            //  simulation
-            //     .nodes(data.nodes)
-            //     .on('tick', ticked);
+    colorizeNode() {
+        return d3.scaleOrdinal(this.nodesColors);
     }
-
     structureDataAndPack() {
-        let color = d3.scaleOrdinal(d3.schemeCategory20c);
+        let color = d3.scaleOrdinal(this.nodesColors);
         let structure = (t: Task[]) => {
             return _.reduce(t, (hierarchy, task, key) => {
                 let existingNode = _.find(hierarchy, ['id', task.node.id]);
                 if (existingNode) {
                     existingNode.children.push(task);
                 } else {
-                    let obj = {
-                        id: task.node.id,
-                        hostName: task.node.hostName,
-                        children: [task]
-                    };
-                    hierarchy.push(obj);
+                    hierarchy.push(_.assign(task.node,{children:[task]}) );
                 }
-
-
                 return hierarchy;
             }, []);
         };
@@ -132,13 +91,11 @@ export class SwarmVizualizerComponent implements OnInit {
 
         let complex = structure(this.tasks);
         console.log('SwarmVizDirective:structureDataAndPack: complex', complex);
+
         let nComplex = _.map(complex, (node) => {
             let tasksIndexedByServiceName = _.groupBy(node.children, 'service.name');
-            let nodeChildren = _.transform(tasksIndexedByServiceName, function(result, value, key) {
-               result.push({
-                        serviceName: key,
-                        children: value
-                    });
+            let nodeChildren = _.transform(tasksIndexedByServiceName, function(result, value:any, key) {
+               result.push(_.assign(value[0].service,{children:value}));
             }, []);
             node.children = nodeChildren;
             return node;
@@ -146,24 +103,16 @@ export class SwarmVizualizerComponent implements OnInit {
         console.log('newStructure', nComplex);
 
         let pack = d3.pack()
-            .size([700, 700])
+            .size([900, 900])
             .padding(5);
-        // let shadowWorkspace = this.rootWorkspace
-        //                             .append('g');
+
         _.each(nComplex, (node, i) => {
-            console.log('node', node);
             let root = d3.hierarchy(node)
                 .sum((o: any) => { return o instanceof Task ?  o.stats.cpu : o.children.length; });
             pack(root);
             console.log('SwarmVizDirective:structureDataAndPack: root', root);
 
-            let width = d3.scaleLinear()
-                            .domain([0, nComplex.length - 1])
-                            .range([0, 500]);
-                            console.log(i, width(i));
-
-
-            let workspace = d3.select(this.el.nativeElement).select('.tile.is-ancestor>.tile')
+            let nodePlaceHolder = d3.select(this.el.nativeElement).select('.tile.is-ancestor>.tile')
                                     .append('div')
                                         .attr('class', 'node-container tile')
                                     .append('svg')
@@ -171,28 +120,47 @@ export class SwarmVizualizerComponent implements OnInit {
                                         .style('width', '100%')
                                         .style('height', '100%')
                                         .attr('preserveAspectRatio', 'xMinYMin meet');
-            let nodeGroup = workspace.append('g')
-                                        .attr('transform', (d) => { return 'translate(' + 0 + ',' + 0 + ')'; })
+            let nodeGroup = nodePlaceHolder.append('g')
+                                        .attr('transform', (d) => { return 'translate(50,50)'; })
                                         .attr('class', node.hostName);
 
             let circles = nodeGroup.selectAll('g')
                                 .data<any>(root.descendants())
                                     .enter().append('g')
                                     .attr('transform',  (d) => { return 'translate(' + d.x + ',' + d.y + ')'; });
-            let ticked = function() {
 
-             };
 
-            d3.forceSimulation([nodeGroup, circles])
-                .force('center', d3.forceCenter(500, 500))
-                 .on('tick', ticked);
+
             console.log('SwarmVizDirective:structureDataAndPack', circles);
             circles.append('circle')
                 .attr('id', function (d) { return d.data.name; })
-                .attr('r', function (d) { return d.r; })
-                .style('fill', function (d) { return color(d.depth); });
-            circles.append('title')
-                .text(function(d) { return `${d.data.name}-${d.data.stats ? d.data.stats.cpu :d.data.name}`; });
+                .attr('r', function (d) { return d.r; });
+
+        // Style containers
+            circles
+                .filter((d) => {return d.depth === 2; })
+                    .style('fill', d => this.taskColor)
+                    .append('title')
+                    .text(function(d) { return `${d.data.name}- cpu: ${Math.floor(d.data.stats.cpu)}%`; });
+
+
+        // Style services packs
+            circles
+                .filter((d) => {return d.depth === 1; })
+                    .style('fill', d => { return d3.scaleOrdinal(d3.schemeCategory20b)('1'); })
+                    .append('title')
+                    .text(function(d) { return `${d.data.serviceName}`; });
+        
+        // Style Host nodes
+            let colorizeNode = (host) => {
+                return d3.scaleOrdinal(this.nodesColors).domain(['manager','node'])( host.isManager ? 'manager' : 'node' );
+            };
+            circles
+                .filter((d) => {return d.depth === 0; })
+                    .style('fill', d => { console.log('host',d); return colorizeNode(d.data); })
+                    .append('title')
+                    .text(function(d: any) { return `${d.data.hostName}`; });
+
 
 
         });
