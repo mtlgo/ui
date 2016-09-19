@@ -1,6 +1,13 @@
 <h1 class="title is-1">
   {{title}}
 </h1>
+<span *ngFor="let item of nodes">{{ item.ID}} - {{item.Description.Hostname}}</span>
+<span *ngFor="let item of services">{{ item.ID}}</span>
+<span *ngFor="let t of tasks | async ">{{ t.ID}}</span>
+<span>{{ nodes?.length }}</span>
+<span>{{ services?.length }}</span>
+<span>{{ tasks?.length }}</span>
+
 <div class="container is-fluid">
-    <app-swarm-vizualizer></app-swarm-vizualizer>
+    <app-swarm-vizualizer [inputTasks]="tasks"></app-swarm-vizualizer>
 </div>

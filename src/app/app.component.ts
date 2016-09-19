@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { SwarmService } from './swarm/swarm.service';
-import {Node} from './swarm-vizualizer/models';
+import { Observable }     from 'rxjs/Observable';
 
 @Component({
   selector: 'app-root',
@@ -9,19 +9,27 @@ import {Node} from './swarm-vizualizer/models';
 })
 export class AppComponent implements OnInit {
   title = 'Docker UI';
-  nodes: Array<Node>;
+  nodes: Array<any>;
+  services: Array<any>;
+  tasks: Observable<Array<any>>;
+  errorMessage : any;
 
-  constructor(private swarmService : SwarmService) {
-
-
+  constructor(private swarmService : SwarmService,   @Inject('AppConfig') private appConfig:any) {
+     // this.appConfig = config;
   }
 
-  ngOnInit() {
-      return this.swarmService.listNodes()
-                    .then((nodes) => {
-                        this.nodes = nodes ;
-                        console.log('couocu', nodes);
-                        return nodes;
-                    });
+  ngOnInit() { 
+      this.swarmService.listNodes()
+                   .subscribe(
+                     nodes => this.nodes = nodes,
+                     error => this.errorMessage = <any>error);
+      this.swarmService.listServices()
+                   .subscribe(
+                     services => this.services = services,
+                     error => this.errorMessage = <any>error);
+     this.swarmService.listTasks()
+                   .subscribe(
+                     tasks => {console.log('getTasks',tasks);   this.services = tasks},
+                     error => this.errorMessage = <any>error);
   }
 }

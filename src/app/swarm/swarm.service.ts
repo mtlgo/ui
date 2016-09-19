@@ -1,20 +1,33 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { Http, Response } from '@angular/http';
 import { Observable }     from 'rxjs/Observable';
-import {Node} from '../swarm-vizualizer/models';
+import '../shared/lib/rx-operators.bundle';
+import {Node, Service, Task} from '../swarm-vizualizer/models';
+
 @Injectable()
 export class SwarmService {
     nodes: Array<Node>;
-  
-  constructor(private http: Http) { }
-  
-  private apiPath = '/nodes';
+    apiUrl : string;
+  constructor(private http: Http, @Inject('AppConfig') private appConfig: any) {
+      this.apiUrl = appConfig.apiUrl;
+  }
 
-  listNodes(): Promise<Array<Node>> {
-      if(!this.nodes){
-          this.nodes=[];
+  listNodes(): Observable<Node[]> {
+      let path = `${this.apiUrl}/nodes`;
+      if (!this.nodes) {
+          this.nodes = [];
       }
       this.nodes.push(new Node());
-      return Promise.resolve(this.nodes);
+     return this.http.get(path).map<Node[]>( res =>  res.json());
+  }
+  
+  listServices(): Observable<Service[]> {
+      let path = `${this.apiUrl}/services`;
+     return this.http.get(path).map<Service[]>( res =>  res.json());
+  }
+  
+  listTasks(): Observable<Task[]> {
+      let path = `${this.apiUrl}/tasks`;
+     return this.http.get(path).map<Task[]>( res =>  res.json());
   }
 }
