@@ -1,4 +1,4 @@
-# Docker UI
+# Docker UI (Alpha - Prototype)
 [![Build Status](https://travis-ci.org/mtlgo/docker-ui.svg?branch=master)](https://travis-ci.org/mtlgo/docker-ui)
 ![Imgur](http://i.imgur.com/e51MQiC.png)
 ## Note
