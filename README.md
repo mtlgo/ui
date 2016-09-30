@@ -1,5 +1,6 @@
-# Docker UI
+# Docker UI (Alpha - Prototype)
 [![Build Status](https://travis-ci.org/mtlgo/docker-ui.svg?branch=master)](https://travis-ci.org/mtlgo/docker-ui)
+![Imgur](http://i.imgur.com/e51MQiC.png)
 ## Note
 
 This project is built upon the **Angular-cli** for Angular 2. You can browse [the repository for further information about the CLI](https://github.com/angular/angular-cli). For the nitty-gritty details of the Angular-cli Webpack configuration, you can have a look on [this file](https://github.com/angular/angular-cli/blob/master/addon/ng2/models/webpack-build-common.ts).

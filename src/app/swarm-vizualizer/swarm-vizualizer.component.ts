@@ -1,13 +1,16 @@
-import { Component, OnInit, ElementRef, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ElementRef, Input, ChangeDetectionStrategy } from '@angular/core';
 const textures = require('textures');
 import * as d3 from '../shared/lib/custom-bundled-d3';
 import * as _ from 'lodash';
 import { Task, Node , Service} from './models';
+import { Observable }     from 'rxjs/Observable';
+
 
 @Component({
     selector: 'app-swarm-vizualizer',
     templateUrl: './swarm-vizualizer.component.html',
-    styleUrls: ['./swarm-vizualizer.component.scss']
+    styleUrls: ['./swarm-vizualizer.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SwarmVizualizerComponent implements OnInit {
     width: number = 1000;
@@ -30,11 +33,13 @@ export class SwarmVizualizerComponent implements OnInit {
     nodesColors: Array<string> = ['#38AFB2', '#658AAB'];
     taskColor: string = '#FFF';
 
+    @Input() inputTasks : Observable<Array<Task>>;
     constructor(private el: ElementRef) { }
 
     ngOnInit() {
         this.generateData();
         this.structureDataAndPack();
+        console.log('input tasks', this.inputTasks);
     }
 
     generateData() {
@@ -178,9 +183,6 @@ export class SwarmVizualizerComponent implements OnInit {
                     .attr('stroke', d => { return colorizeNode(d.data); })
                         .append('title')
                         .text(function(d: any) { return `${d.data.hostName}`; });
-
-
-
         });
 
     }
