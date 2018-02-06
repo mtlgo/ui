@@ -18,16 +18,16 @@ export class SwarmService {
           this.nodes = [];
       }
       this.nodes.push(new Node());
-     return this.http.get(path).map<Node[]>( res =>  res.json());
+     return this.http.get(path).map( res =>  res.json());
   }
   
   listServices(): Observable<Service[]> {
       let path = `${this.apiUrl}/services`;
-     return this.http.get(path).map<Service[]>( res =>  res.json());
+     return this.http.get(path).map( res =>  res.json());
   }
   
   listTasks(): Observable<Task[]> {
       let path = `${this.apiUrl}/tasks`;
-     return this.http.get(path).map<Task[]>( res =>  res.json());
+     return this.http.get(path).map( res =>  res.json());
   }
 }

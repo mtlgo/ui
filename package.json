@@ -7,10 +7,10 @@
     "start": "ng serve --host 0.0.0.0",
     "build": "ng build --dev",
     "build:prod": "ng build --prod",
-    "lint": "tslint \"src/**/*.ts\"",
+    "lint": "ng lint",
     "test": "ng test",
     "pree2e": "webdriver-manager update",
-    "e2e": "protractor"
+    "e2e": "ng e2e"
   },
   "private": true,
   "dependencies": {
@@ -51,7 +51,7 @@
     "@types/d3-transition": "1.0.4",
     "@types/jasmine": "~2.8.3",
     "@types/jasminewd2": "~2.0.2",
-    "@types/node": "~6.0.60",
+    "@types/node": "^6.0.96",
     "codelyzer": "^4.0.1",
     "jasmine-core": "~2.8.0",
     "jasmine-spec-reporter": "~4.2.1",
