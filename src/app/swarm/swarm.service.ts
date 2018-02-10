@@ -8,22 +8,22 @@ import Morphism from 'morphism';
 @Injectable()
 export class SwarmService {
   apiUrl: string;
-  constructor(private http: Http, @Inject('AppConfig') private appConfig: any) {
+  constructor(private http: HttpClient, @Inject('AppConfig') private appConfig: any) {
     this.apiUrl = appConfig.apiUrl;
   }
 
-  listNodes(): Observable<Node[]> {
+  listNodes(): Observable<any> {
     const path = `${this.apiUrl}/nodes`;
-    return this.http.get(path).map(res => res.json());
+    return this.http.get(path);
   }
 
-  listServices(): Observable<Service[]> {
+  listServices(): Observable<any> {
     const path = `${this.apiUrl}/services`;
-    return this.http.get(path).map(res => res.json());
+    return this.http.get(path);
   }
 
-  listTasks(): Observable<Task[]> {
+  listTasks(): Observable<any> {
     const path = `${this.apiUrl}/tasks`;
-    return this.http.get(path).map(res => res.json());
+    return this.http.get(path);
   }
 }
